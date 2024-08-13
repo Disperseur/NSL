@@ -52,13 +52,13 @@ class Boat():
 
     def parse_nmea(self):
         # sentence = self.port.readline().decode()
-        sentence = NMEA_TEST[0]
+        sentence = NMEA_TEST[2]
 
 
-        nmea_rmc_re = re.compile(r"\$(?P<type>.*),(?P<champ0>.*),(?P<champ1>.*),(?P<champ2>.*),(?P<champ3>.*),(?P<champ4>.*),(?P<champ5>.*),(?P<champ6>.*),(?P<champ7>.*),(?P<champ8>.*),(?P<champ9>.*),(?P<champ10>.*),(?P<champ11>.*)\*(?P<checksum>.*)")
-        nmea_dbt_re = re.compile(r"\$(?P<type>.*),(?P<champ0>.*),(?P<champ1>.*),(?P<champ2>.*),(?P<champ3>.*),(?P<champ4>.*),(?P<champ5>.*)\*(?P<checksum>.*)")
-        nmea_mwv_re = re.compile(r"\$(?P<type>.*),(?P<champ0>.*),(?P<champ1>.*),(?P<champ2>.*),(?P<champ3>.*),(?P<champ4>.*)\*(?P<checksum>.*)")
-        nmea_mtw_re = re.compile(r"\$(?P<type>.*),(?P<champ0>.*),(?P<champ1>.*)\*(?P<checksum>.*)")
+        nmea_rmc_re = re.compile(r"\$GPRMC,(?P<hour>.*),(?P<champ1>.*),(?P<lat>.*),(?P<champ3>.*),(?P<long>.*),(?P<champ5>.*),(?P<ground_speed>.*),(?P<heading>.*),(?P<date>.*),,,(?P<champ11>.*)\*(?P<checksum>.*)")
+        nmea_dbt_re = re.compile(r"\$SDDBT,(?P<champ0>.*),(?P<champ1>.*),(?P<champ2>.*),(?P<champ3>.*),(?P<champ4>.*),(?P<champ5>.*)\*(?P<checksum>.*)")
+        nmea_mwv_re = re.compile(r"\$WIMWV,(?P<champ0>.*),(?P<champ1>.*),(?P<champ2>.*),(?P<champ3>.*),(?P<champ4>.*)\*(?P<checksum>.*)")
+        nmea_mtw_re = re.compile(r"\$WIMTW,(?P<champ0>.*),(?P<champ1>.*)\*(?P<checksum>.*)")
         nmea_vhw_re = re.compile(r"\$VWVHW,,,,,(?P<speed_kt>.*),N,(?P<speed_kmh>.*),K\*(?P<checksum>.*)")
 
         nmea_rmc_parsed = nmea_rmc_re.match(sentence)
@@ -68,33 +68,33 @@ class Boat():
         nmea_vhw_parsed = nmea_vhw_re.match(sentence)
 
 
-        if (nmea_rmc_parsed != None and nmea_rmc_parsed.group('type')[2:] == "RMC"):
+        if (nmea_rmc_parsed != None):
             #cas d'un message RMC
-            self.hour = f"{nmea_rmc_parsed.group('champ0')[0:2]}h"
-            self.minut = f"{nmea_rmc_parsed.group('champ0')[2:4]}m"
-            self.sec = f"{nmea_rmc_parsed.group('champ0')[4:]}s"
+            self.hour = f"{nmea_rmc_parsed.group('hour')[0:2]}h {nmea_rmc_parsed.group('hour')[2:4]}m {nmea_rmc_parsed.group('hour')[4:]}s"
+            #self.minut = f"{nmea_rmc_parsed.group('hour')[2:4]}m"
+            #self.sec = f"{nmea_rmc_parsed.group('hour')[4:]}s"
 
-            self.lat = f"{nmea_rmc_parsed.group('champ2')[0:2]}°{nmea_rmc_parsed.group('champ2')[2:]}' {nmea_rmc_parsed.group('champ3')}"
-            self.long= f"{nmea_rmc_parsed.group('champ4')[0:3]}°{nmea_rmc_parsed.group('champ4')[3:]}' {nmea_rmc_parsed.group('champ5')}"
+            self.lat = f"{nmea_rmc_parsed.group('lat')[0:2]}°{nmea_rmc_parsed.group('lat')[2:]}' {nmea_rmc_parsed.group('champ3')}"
+            self.long= f"{nmea_rmc_parsed.group('long')[0:3]}°{nmea_rmc_parsed.group('long')[3:]}' {nmea_rmc_parsed.group('champ5')}"
 
-            self.ground_speed = f"{nmea_rmc_parsed.group('champ6')} kt"
-            self.heading = f"{nmea_rmc_parsed.group('champ7')} °"
+            self.ground_speed = f"{nmea_rmc_parsed.group('ground_speed')}kt"
+            self.heading = f"{nmea_rmc_parsed.group('heading')}°"
 
-            self.day = nmea_rmc_parsed.group('champ8')[0:2]
-            self.month = nmea_rmc_parsed.group('champ8')[2:4]
-            self.year = nmea_rmc_parsed.group('champ8')[4:]
+            self.day = f"{nmea_rmc_parsed.group('date')[0:2]}/{nmea_rmc_parsed.group('date')[2:4]}/{nmea_rmc_parsed.group('date')[4:]}"
+            #self.month = nmea_rmc_parsed.group('date')[2:4]
+            #self.year = nmea_rmc_parsed.group('date')[4:]
 
-        if (nmea_dbt_parsed != None and nmea_dbt_parsed.group('type')[2:] == "DBT"):
-            self.water_depth = f"{nmea_dbt_parsed.group('champ2')} m"
+        if (nmea_dbt_parsed != None):
+            self.water_depth = f"{nmea_dbt_parsed.group('champ2')}m"
 
-        if (nmea_mwv_parsed != None and nmea_mwv_parsed.group('type') == "WIMWV"):
-            self.wind_direction = f"{nmea_mwv_parsed.group('champ0')}° {nmea_mwv_parsed.group('champ2')}{nmea_mwv_parsed.group('champ3')}"
+        if (nmea_mwv_parsed != None):
+            self.wind_direction = f"{nmea_mwv_parsed.group('champ2')}kt {nmea_mwv_parsed.group('champ0')}°"
         
-        if (nmea_mtw_parsed != None and nmea_mtw_parsed.group('type') == "WIMTW"):
+        if (nmea_mtw_parsed != None):
             self.water_temp = f"{nmea_mtw_parsed.group('champ0')}°"
 
         if (nmea_vhw_parsed != None):
-            self.water_speed = f"{nmea_vhw_parsed.group('speed_kt')} kt"
+            self.water_speed = f"{nmea_vhw_parsed.group('speed_kt')}kt"
 
 
 #tests
