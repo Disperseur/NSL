@@ -13,14 +13,8 @@ NMEA_TEST_VHW = "$VWVHW,,,,,3.1,N,4.30,K*4D"
 NMEA_TEST = [NMEA_TEST_RMC, NMEA_TEST_DBT, NMEA_TEST_MWV, NMEA_TEST_MTW, NMEA_TEST_VHW]
 
 class Boat():
-    """
-    
-    """
 
     def __init__(self, serial_port):
-        """
-        
-        """
         self.ground_speed = "-"
 
         self.long = "-"
@@ -50,7 +44,6 @@ class Boat():
     def parse_nmea(self):
         # sentence = self.port.readline().decode()
         sentence = NMEA_TEST[0]
-
 
         nmea_rmc_re = re.compile(r"\$GPRMC,(?P<time>.*),(?P<champ1>.*),(?P<lat>.*),(?P<champ3>.*),(?P<long>.*),(?P<champ5>.*),(?P<ground_speed>.*),(?P<heading>.*),(?P<date>.*),,,(?P<champ11>.*)\*(?P<checksum>.*)")
         nmea_dbt_re = re.compile(r"\$SDDBT,(?P<depth_ft>.*),(?P<champ1>.*),(?P<depth_m>.*),(?P<champ3>.*),(?P<depth_f>.*),(?P<champ5>.*)\*(?P<checksum>.*)")
