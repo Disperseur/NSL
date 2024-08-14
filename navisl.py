@@ -21,26 +21,23 @@ class Boat():
         """
         
         """
-        self.ground_speed = 0
+        self.ground_speed = "-"
 
-        self.long = 0
-        self.lat = 0
-        self.heading = 0
+        self.long = "-"
+        self.lat = "-"
+        self.heading = "-"
 
-        self.hour = 0
-        self.minut = 0
-        self.sec = 0
+        self.time = "-"
 
-        self.day = 0
-        self.month = 0
-        self.year = 0
+        self.date = "-"
+        self.month = "-"
+        self.year = "-"
 
-        self.wind_speed = 0
-        self.wind_direction = 0
+        self.wind = "-"
 
-        self.water_speed = 0
-        self.water_temp = 0
-        self.water_depth = 0
+        self.water_speed = "-"
+        self.water_temp = "-"
+        self.water_depth = "-"
 
         #connextion au bateau
         try:
@@ -52,13 +49,13 @@ class Boat():
 
     def parse_nmea(self):
         # sentence = self.port.readline().decode()
-        sentence = NMEA_TEST[2]
+        sentence = NMEA_TEST[0]
 
 
-        nmea_rmc_re = re.compile(r"\$GPRMC,(?P<hour>.*),(?P<champ1>.*),(?P<lat>.*),(?P<champ3>.*),(?P<long>.*),(?P<champ5>.*),(?P<ground_speed>.*),(?P<heading>.*),(?P<date>.*),,,(?P<champ11>.*)\*(?P<checksum>.*)")
-        nmea_dbt_re = re.compile(r"\$SDDBT,(?P<champ0>.*),(?P<champ1>.*),(?P<champ2>.*),(?P<champ3>.*),(?P<champ4>.*),(?P<champ5>.*)\*(?P<checksum>.*)")
-        nmea_mwv_re = re.compile(r"\$WIMWV,(?P<champ0>.*),(?P<champ1>.*),(?P<champ2>.*),(?P<champ3>.*),(?P<champ4>.*)\*(?P<checksum>.*)")
-        nmea_mtw_re = re.compile(r"\$WIMTW,(?P<champ0>.*),(?P<champ1>.*)\*(?P<checksum>.*)")
+        nmea_rmc_re = re.compile(r"\$GPRMC,(?P<time>.*),(?P<champ1>.*),(?P<lat>.*),(?P<champ3>.*),(?P<long>.*),(?P<champ5>.*),(?P<ground_speed>.*),(?P<heading>.*),(?P<date>.*),,,(?P<champ11>.*)\*(?P<checksum>.*)")
+        nmea_dbt_re = re.compile(r"\$SDDBT,(?P<depth_ft>.*),(?P<champ1>.*),(?P<depth_m>.*),(?P<champ3>.*),(?P<depth_f>.*),(?P<champ5>.*)\*(?P<checksum>.*)")
+        nmea_mwv_re = re.compile(r"\$WIMWV,(?P<wind_angle>.*),(?P<champ1>.*),(?P<wind_speed_kt>.*),(?P<champ3>.*),(?P<champ4>.*)\*(?P<checksum>.*)")
+        nmea_mtw_re = re.compile(r"\$WIMTW,(?P<water_temp>.*),(?P<champ1>.*)\*(?P<checksum>.*)")
         nmea_vhw_re = re.compile(r"\$VWVHW,,,,,(?P<speed_kt>.*),N,(?P<speed_kmh>.*),K\*(?P<checksum>.*)")
 
         nmea_rmc_parsed = nmea_rmc_re.match(sentence)
@@ -69,29 +66,24 @@ class Boat():
 
 
         if (nmea_rmc_parsed != None):
-            #cas d'un message RMC
-            self.hour = f"{nmea_rmc_parsed.group('hour')[0:2]}h {nmea_rmc_parsed.group('hour')[2:4]}m {nmea_rmc_parsed.group('hour')[4:]}s"
-            #self.minut = f"{nmea_rmc_parsed.group('hour')[2:4]}m"
-            #self.sec = f"{nmea_rmc_parsed.group('hour')[4:]}s"
-
+            self.time = f"{nmea_rmc_parsed.group('time')[0:2]}:{nmea_rmc_parsed.group('time')[2:4]}:{nmea_rmc_parsed.group('time')[4:]}"
+            
             self.lat = f"{nmea_rmc_parsed.group('lat')[0:2]}°{nmea_rmc_parsed.group('lat')[2:]}' {nmea_rmc_parsed.group('champ3')}"
             self.long= f"{nmea_rmc_parsed.group('long')[0:3]}°{nmea_rmc_parsed.group('long')[3:]}' {nmea_rmc_parsed.group('champ5')}"
 
             self.ground_speed = f"{nmea_rmc_parsed.group('ground_speed')}kt"
             self.heading = f"{nmea_rmc_parsed.group('heading')}°"
 
-            self.day = f"{nmea_rmc_parsed.group('date')[0:2]}/{nmea_rmc_parsed.group('date')[2:4]}/{nmea_rmc_parsed.group('date')[4:]}"
-            #self.month = nmea_rmc_parsed.group('date')[2:4]
-            #self.year = nmea_rmc_parsed.group('date')[4:]
+            self.date = f"{nmea_rmc_parsed.group('date')[0:2]}/{nmea_rmc_parsed.group('date')[2:4]}/{nmea_rmc_parsed.group('date')[4:]}"
 
         if (nmea_dbt_parsed != None):
-            self.water_depth = f"{nmea_dbt_parsed.group('champ2')}m"
+            self.water_depth = f"{nmea_dbt_parsed.group('depth_m')}m"
 
         if (nmea_mwv_parsed != None):
-            self.wind_direction = f"{nmea_mwv_parsed.group('champ2')}kt {nmea_mwv_parsed.group('champ0')}°"
+            self.wind = f"{nmea_mwv_parsed.group('wind_speed_kt')}kt {nmea_mwv_parsed.group('wind_angle')}°"
         
         if (nmea_mtw_parsed != None):
-            self.water_temp = f"{nmea_mtw_parsed.group('champ0')}°"
+            self.water_temp = f"{nmea_mtw_parsed.group('water_temp')}°"
 
         if (nmea_vhw_parsed != None):
             self.water_speed = f"{nmea_vhw_parsed.group('speed_kt')}kt"
@@ -102,9 +94,6 @@ STLou = Boat("/dev/ttyUSB0")
 
 while(1):
 
-    
-
-
     STLou.parse_nmea()
     
     os.system('clear')
@@ -112,14 +101,9 @@ while(1):
     print(STLou.long)
     print(STLou.lat)
     print(STLou.heading)
-    print(STLou.hour)
-    print(STLou.minut)
-    print(STLou.sec)
-    print(STLou.day)
-    print(STLou.month)
-    print(STLou.year)
-    print(STLou.wind_speed)
-    print(STLou.wind_direction)
+    print(STLou.time)
+    print(STLou.date)
+    print(STLou.wind)
     print(STLou.water_speed)
     print(STLou.water_temp)
     print(STLou.water_depth)
