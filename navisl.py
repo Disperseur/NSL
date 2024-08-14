@@ -42,8 +42,8 @@ class Boat():
 
 
     def parse_nmea(self):
-        # sentence = self.port.readline().decode()
-        sentence = NMEA_TEST[0]
+        sentence = self.port.readline().decode()
+        # sentence = NMEA_TEST[0]
 
         nmea_rmc_re = re.compile(r"\$GPRMC,(?P<time>.*),(?P<champ1>.*),(?P<lat>.*),(?P<champ3>.*),(?P<long>.*),(?P<champ5>.*),(?P<ground_speed>.*),(?P<heading>.*),(?P<date>.*),,,(?P<champ11>.*)\*(?P<checksum>.*)")
         nmea_dbt_re = re.compile(r"\$SDDBT,(?P<depth_ft>.*),(?P<champ1>.*),(?P<depth_m>.*),(?P<champ3>.*),(?P<depth_f>.*),(?P<champ5>.*)\*(?P<checksum>.*)")
@@ -90,15 +90,34 @@ while(1):
     STLou.parse_nmea()
     
     os.system('clear')
-    print(STLou.ground_speed)
-    print(STLou.long)
-    print(STLou.lat)
-    print(STLou.heading)
-    print(STLou.time)
-    print(STLou.date)
-    print(STLou.wind)
-    print(STLou.water_speed)
-    print(STLou.water_temp)
-    print(STLou.water_depth)
+
+    print("Date:\t\t", STLou.date)
+    print("Time:\t\t", STLou.time[:-4])
+
+    print("")
+    
+    print("Speed")
+    print("Ground:\t\t", STLou.ground_speed)
+    print("Water:\t\t", STLou.water_speed)
+
+    print("")
+
+    print("Heading:\t", STLou.heading)
+
+    print("")
+
+    print("GPS Position")
+    print("Lat:\t\t", STLou.lat)
+    print("Long:\t\t", STLou.long)
+
+    print("")
+    
+    print("Wind:\t\t", STLou.wind)
+
+    print("")
+
+    print("Water")
+    print("Temp:\t\t", STLou.water_temp)
+    print("Depth:\t\t", STLou.water_depth)
 
     time.sleep(0.1)
