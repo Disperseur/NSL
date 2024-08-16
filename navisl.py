@@ -5,8 +5,12 @@ import os
 import tkinter
 import math
 
+#settings
 FONT_INFOS = "Mono 25"
+UPDATE_PERIOD_MS = 100
 
+
+#test NMEA sentences
 NMEA_TEST_RMC = "$GPRMC,092541.000,A,4439.6265,N,00108.1894,W,0.35,159.65,120824,,,A*72"
 NMEA_TEST_DBT = "$SDDBT,19.3,f,5.8,M,3.2,F*31"
 NMEA_TEST_MWV = "$WIMWV,20.5,R,13.5,N,A*23"
@@ -14,7 +18,6 @@ NMEA_TEST_MTW = "$WIMTW,25.8,C*02"
 NMEA_TEST_VHW = "$VWVHW,,,,,3.1,N,4.30,K*4D"
 
 NMEA_TEST = [NMEA_TEST_RMC, NMEA_TEST_DBT, NMEA_TEST_MWV, NMEA_TEST_MTW, NMEA_TEST_VHW]
-
 
 
 
@@ -50,8 +53,10 @@ class Boat():
 
 
     def parse_nmea(self):
-        sentence = self.port.readline().decode()
-        # sentence = NMEA_TEST[0]
+        try:
+            sentence = self.port.readline().decode()
+        except:
+            sentence = NMEA_TEST[0]
 
         nmea_rmc_re = re.compile(r"\$GPRMC,(?P<time>.*),(?P<champ1>.*),(?P<lat>.*),(?P<champ3>.*),(?P<long>.*),(?P<champ5>.*),(?P<ground_speed>.*),(?P<heading>.*),(?P<date>.*),,,(?P<champ11>.*)\*(?P<checksum>.*)")
         nmea_dbt_re = re.compile(r"\$SDDBT,(?P<depth_ft>.*),(?P<champ1>.*),(?P<depth_m>.*),(?P<champ3>.*),(?P<depth_f>.*),(?P<champ5>.*)\*(?P<checksum>.*)")
@@ -91,6 +96,11 @@ class Boat():
             self.water_speed = f"{nmea_vhw_parsed.group('speed_kt')[:-1]} kt"
 
 
+
+
+
+
+
 #main
 STLou = Boat("/dev/ttyUSB0")
 t_start = int(time.monotonic())
@@ -109,15 +119,20 @@ def update_affichage():
     label_vent.config(text=f"{STLou.wind_speed} {STLou.wind_angle}")
     label_eaux.config(text=f"Température: {STLou.water_temp}\nProfondeur: {STLou.water_depth}")
 
-
     angle_vent = math.radians(float(STLou.wind_angle[:-1]) - 90)
     
-
     rose_vent.coords(axe_vent, 75, 75, int(50*math.cos(angle_vent))+75, int(50*math.sin(angle_vent)+75))
 
-    fenetre.after(100, update_affichage)
 
 
+    fenetre.after(UPDATE_PERIOD_MS, update_affichage)
+
+
+
+
+
+
+#description de l'affichage de l'appli
 
 fenetre = tkinter.Tk()
 fenetre.title("NSL")
@@ -160,45 +175,5 @@ label_vent.pack()
 label_eaux.pack(anchor="w")
 
 
-fenetre.after(100, update_affichage)
-
+fenetre.after(UPDATE_PERIOD_MS, update_affichage)
 fenetre.mainloop()
-
-
-
-# while(1):
-
-#     STLou.parse_nmea()
-    
-#     os.system('clear')
-
-#     print("Date:\t\t", STLou.date)
-#     print("Time:\t\t", STLou.time[:-4])
-
-#     print("")
-    
-#     print("Speed")
-#     print("Ground:\t\t", STLou.ground_speed)
-#     print("Water:\t\t", STLou.water_speed)
-
-#     print("")
-
-#     print("Heading:\t", STLou.heading)
-
-#     print("")
-
-#     print("GPS Position")
-#     print("Lat:\t\t", STLou.lat)
-#     print("Long:\t\t", STLou.long)
-
-#     print("")
-    
-#     print("Wind:\t\t", STLou.wind)
-
-#     print("")
-
-#     print("Water")
-#     print("Temp:\t\t", STLou.water_temp)
-#     print("Depth:\t\t", STLou.water_depth)
-
-#     time.sleep(0.1)
