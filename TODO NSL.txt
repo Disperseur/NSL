@@ -1,7 +1,7 @@
 TODO NSL
 
 
-- Alarmes (frame spécialisée):
+- Alarmes (frame spécialisée): ->"\a"
 	face au vent
 	vent arr
 	profondeur faible (sonore)
@@ -11,11 +11,8 @@ TODO NSL
 - Infos
 	estimation allure
 	conseil ris
-	temps depuis allumage
 
 
 
-- vitesse au 10e 
-- direction vent au degré
-- aligner sur gps et eaux
-- espacer chiffres et unités sauf sur les angles
+
+
