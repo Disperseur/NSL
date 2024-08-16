@@ -13,3 +13,9 @@ TODO NSL
 	conseil ris
 	temps depuis allumage
 
+
+
+- vitesse au 10e 
+- direction vent au degré
+- aligner sur gps et eaux
+- espacer chiffres et unités sauf sur les angles

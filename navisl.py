@@ -3,7 +3,9 @@ import serial
 import time
 import os
 import tkinter
+import math
 
+FONT_INFOS = "Mono 25"
 
 NMEA_TEST_RMC = "$GPRMC,092541.000,A,4439.6265,N,00108.1894,W,0.35,159.65,120824,,,A*72"
 NMEA_TEST_DBT = "$SDDBT,19.3,f,5.8,M,3.2,F*31"
@@ -12,6 +14,10 @@ NMEA_TEST_MTW = "$WIMTW,25.8,C*02"
 NMEA_TEST_VHW = "$VWVHW,,,,,3.1,N,4.30,K*4D"
 
 NMEA_TEST = [NMEA_TEST_RMC, NMEA_TEST_DBT, NMEA_TEST_MWV, NMEA_TEST_MTW, NMEA_TEST_VHW]
+
+
+
+
 
 class Boat():
 
@@ -28,7 +34,8 @@ class Boat():
         self.month = "-"
         self.year = "-"
 
-        self.wind = "-"
+        self.wind_speed = "-"
+        self.wind_angle = "0°"
 
         self.water_speed = "-"
         self.water_temp = "-"
@@ -65,35 +72,48 @@ class Boat():
             self.lat = f"{nmea_rmc_parsed.group('lat')[0:2]}°{nmea_rmc_parsed.group('lat')[2:]}' {nmea_rmc_parsed.group('champ3')}"
             self.long= f"{nmea_rmc_parsed.group('long')[0:3]}°{nmea_rmc_parsed.group('long')[3:]}' {nmea_rmc_parsed.group('champ5')}"
 
-            self.ground_speed = f"{nmea_rmc_parsed.group('ground_speed')}kt"
+            self.ground_speed = f"{nmea_rmc_parsed.group('ground_speed')[:-1]} kt"
             self.heading = f"{nmea_rmc_parsed.group('heading')}°"
 
             self.date = f"{nmea_rmc_parsed.group('date')[0:2]}/{nmea_rmc_parsed.group('date')[2:4]}/{nmea_rmc_parsed.group('date')[4:]}"
 
         if (nmea_dbt_parsed != None):
-            self.water_depth = f"{nmea_dbt_parsed.group('depth_m')}m"
+            self.water_depth = f"{nmea_dbt_parsed.group('depth_m')} m"
 
         if (nmea_mwv_parsed != None):
-            self.wind = f"{nmea_mwv_parsed.group('wind_speed_kt')}kt {nmea_mwv_parsed.group('wind_angle')}°"
+            self.wind_speed = f"{nmea_mwv_parsed.group('wind_speed_kt')} kt"
+            self.wind_angle = f"{nmea_mwv_parsed.group('wind_angle')[:-2]}°"
         
         if (nmea_mtw_parsed != None):
-            self.water_temp = f"{nmea_mtw_parsed.group('water_temp')}°"
+            self.water_temp = f"{nmea_mtw_parsed.group('water_temp')[:-2]}°"
 
         if (nmea_vhw_parsed != None):
-            self.water_speed = f"{nmea_vhw_parsed.group('speed_kt')}kt"
+            self.water_speed = f"{nmea_vhw_parsed.group('speed_kt')[:-1]} kt"
 
 
-#tests
+#main
 STLou = Boat("/dev/ttyUSB0")
+t_start = int(time.monotonic())
 
 def update_affichage():
     STLou.parse_nmea()
 
-    label_dateheure.config(text=f"{STLou.date}\n{STLou.time[:-4]}")
+    duree_nav = int(time.monotonic()) - t_start
+    duree_nav_sec = duree_nav%60
+    duree_nav_min = (duree_nav//60)%60
+    duree_nav_heu = (duree_nav//3600)
+
+    label_dateheure.config(text=f"{STLou.date}\n{STLou.time[:-4]}\nDurée nav: {duree_nav_heu}:{duree_nav_min}:{duree_nav_sec}")
     label_vitesse.config(text=f"Sol: {STLou.ground_speed}\nEau: {STLou.water_speed}")
     label_gps.config(text=f"Cap: {STLou.heading}\nLat: {STLou.lat}\nLon: {STLou.long}")
-    label_vent.config(text=f"{STLou.wind}")
-    label_eaux.config(text=f"Temp: {STLou.water_temp}\nProfondeur: {STLou.water_depth}")
+    label_vent.config(text=f"{STLou.wind_speed} {STLou.wind_angle}")
+    label_eaux.config(text=f"Température: {STLou.water_temp}\nProfondeur: {STLou.water_depth}")
+
+
+    angle_vent = math.radians(float(STLou.wind_angle[:-1]) - 90)
+    
+
+    rose_vent.coords(axe_vent, 75, 75, int(50*math.cos(angle_vent))+75, int(50*math.sin(angle_vent)+75))
 
     fenetre.after(100, update_affichage)
 
@@ -101,6 +121,8 @@ def update_affichage():
 
 fenetre = tkinter.Tk()
 fenetre.title("NSL")
+fenetre.geometry('500x1100')
+fenetre.resizable(width=False, height=True)
 
 
 frame_dateheure = tkinter.LabelFrame(fenetre, text="Date / Heure", padx=20, pady=20, font="Mono 20")
@@ -113,22 +135,30 @@ frame_gps = tkinter.LabelFrame(fenetre, text="GPS", padx=20, pady=20, font="Mono
 frame_gps.pack(fill="both", expand="yes")
 
 frame_vent = tkinter.LabelFrame(fenetre, text="Vent", padx=20, pady=20, font="Mono 20")
+
+rose_vent = tkinter.Canvas(frame_vent, width=150, height=150)
+axe_vent = rose_vent.create_line(75, 75, 75, 10, width=4)
+contour_rose = rose_vent.create_oval(10, 10, 140, 140, width=4)
+
+rose_vent.pack()
+
 frame_vent.pack(fill="both", expand="yes")
 
 frame_eaux = tkinter.LabelFrame(fenetre, text="Eaux", padx=20, pady=20, font="Mono 20")
 frame_eaux.pack(fill="both", expand="yes")
- 
-label_dateheure = tkinter.Label(frame_dateheure, text="-\n-", font="Mono 30")
-label_vitesse = tkinter.Label(frame_vitesse, text="Eau: -\nSol: -", font="Mono 30")
-label_gps = tkinter.Label(frame_gps, text="Cap: -\nLat: -\nLon: -", font="Mono 30")
-label_vent = tkinter.Label(frame_vent, text="-", font="Mono 30")
-label_eaux = tkinter.Label(frame_eaux, text="-\n-", font="Mono 30")
+
+label_dateheure = tkinter.Label(frame_dateheure, text="-\n-", font=FONT_INFOS)
+label_vitesse = tkinter.Label(frame_vitesse, text="Eau: -\nSol: -", font=FONT_INFOS, justify="left")
+label_gps = tkinter.Label(frame_gps, text="Cap: -\nLat: -\nLon: -", font=FONT_INFOS, justify="left")
+label_vent = tkinter.Label(frame_vent, text="- -", font=FONT_INFOS)
+label_eaux = tkinter.Label(frame_eaux, text="Température: -\nProfondeur: -", font=FONT_INFOS, justify="left")
 
 label_dateheure.pack()
-label_vitesse.pack()
-label_gps.pack()
+label_vitesse.pack(anchor="w")
+label_gps.pack(anchor="w")
 label_vent.pack()
-label_eaux.pack()
+label_eaux.pack(anchor="w")
+
 
 fenetre.after(100, update_affichage)
 
