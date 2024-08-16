@@ -2,6 +2,7 @@ import re
 import serial
 import time
 import os
+import tkinter
 
 
 NMEA_TEST_RMC = "$GPRMC,092541.000,A,4439.6265,N,00108.1894,W,0.35,159.65,120824,,,A*72"
@@ -85,39 +86,89 @@ class Boat():
 #tests
 STLou = Boat("/dev/ttyUSB0")
 
-while(1):
-
+def update_affichage():
     STLou.parse_nmea()
+
+    label_dateheure.config(text=f"{STLou.date}\n{STLou.time[:-4]}")
+    label_vitesse.config(text=f"Sol: {STLou.ground_speed}\nEau: {STLou.water_speed}")
+    label_gps.config(text=f"Cap: {STLou.heading}\nLat: {STLou.lat}\nLon: {STLou.long}")
+    label_vent.config(text=f"{STLou.wind}")
+    label_eaux.config(text=f"Temp: {STLou.water_temp}\nProfondeur: {STLou.water_depth}")
+
+    fenetre.after(100, update_affichage)
+
+
+
+fenetre = tkinter.Tk()
+fenetre.title("NSL")
+
+
+frame_dateheure = tkinter.LabelFrame(fenetre, text="Date / Heure", padx=20, pady=20, font="Mono 20")
+frame_dateheure.pack(fill="both", expand="yes")
+
+frame_vitesse = tkinter.LabelFrame(fenetre, text="Vitesses", padx=20, pady=20, font="Mono 20")
+frame_vitesse.pack(fill="both", expand="yes")
+
+frame_gps = tkinter.LabelFrame(fenetre, text="GPS", padx=20, pady=20, font="Mono 20")
+frame_gps.pack(fill="both", expand="yes")
+
+frame_vent = tkinter.LabelFrame(fenetre, text="Vent", padx=20, pady=20, font="Mono 20")
+frame_vent.pack(fill="both", expand="yes")
+
+frame_eaux = tkinter.LabelFrame(fenetre, text="Eaux", padx=20, pady=20, font="Mono 20")
+frame_eaux.pack(fill="both", expand="yes")
+ 
+label_dateheure = tkinter.Label(frame_dateheure, text="-\n-", font="Mono 30")
+label_vitesse = tkinter.Label(frame_vitesse, text="Eau: -\nSol: -", font="Mono 30")
+label_gps = tkinter.Label(frame_gps, text="Cap: -\nLat: -\nLon: -", font="Mono 30")
+label_vent = tkinter.Label(frame_vent, text="-", font="Mono 30")
+label_eaux = tkinter.Label(frame_eaux, text="-\n-", font="Mono 30")
+
+label_dateheure.pack()
+label_vitesse.pack()
+label_gps.pack()
+label_vent.pack()
+label_eaux.pack()
+
+fenetre.after(100, update_affichage)
+
+fenetre.mainloop()
+
+
+
+# while(1):
+
+#     STLou.parse_nmea()
     
-    os.system('clear')
+#     os.system('clear')
 
-    print("Date:\t\t", STLou.date)
-    print("Time:\t\t", STLou.time[:-4])
+#     print("Date:\t\t", STLou.date)
+#     print("Time:\t\t", STLou.time[:-4])
 
-    print("")
+#     print("")
     
-    print("Speed")
-    print("Ground:\t\t", STLou.ground_speed)
-    print("Water:\t\t", STLou.water_speed)
+#     print("Speed")
+#     print("Ground:\t\t", STLou.ground_speed)
+#     print("Water:\t\t", STLou.water_speed)
 
-    print("")
+#     print("")
 
-    print("Heading:\t", STLou.heading)
+#     print("Heading:\t", STLou.heading)
 
-    print("")
+#     print("")
 
-    print("GPS Position")
-    print("Lat:\t\t", STLou.lat)
-    print("Long:\t\t", STLou.long)
+#     print("GPS Position")
+#     print("Lat:\t\t", STLou.lat)
+#     print("Long:\t\t", STLou.long)
 
-    print("")
+#     print("")
     
-    print("Wind:\t\t", STLou.wind)
+#     print("Wind:\t\t", STLou.wind)
 
-    print("")
+#     print("")
 
-    print("Water")
-    print("Temp:\t\t", STLou.water_temp)
-    print("Depth:\t\t", STLou.water_depth)
+#     print("Water")
+#     print("Temp:\t\t", STLou.water_temp)
+#     print("Depth:\t\t", STLou.water_depth)
 
-    time.sleep(0.1)
+#     time.sleep(0.1)

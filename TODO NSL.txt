@@ -1,0 +1,15 @@
+TODO NSL
+
+
+- Alarmes (frame spécialisée):
+	face au vent
+	vent arr
+	profondeur faible (sonore)
+	vent fort
+	ripage (?)
+
+- Infos
+	estimation allure
+	conseil ris
+	temps depuis allumage
+
