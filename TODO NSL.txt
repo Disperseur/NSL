@@ -13,6 +13,9 @@ TODO NSL
 	conseil ris
 
 
+- Enregistrement statistiques:
+	* Vitesse max sol (et eau ?)
+	* vent max
 
 
 
