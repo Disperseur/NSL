@@ -10,15 +10,8 @@ FONT_INFOS = "Mono 25"
 UPDATE_PERIOD_MS = 100
 
 
-#test NMEA sentences
-NMEA_TEST_RMC = "$GPRMC,092541.000,A,4439.6265,N,00108.1894,W,0.35,159.65,120824,,,A*72"
-NMEA_TEST_DBT = "$SDDBT,19.3,f,5.8,M,3.2,F*31"
-NMEA_TEST_MWV = "$WIMWV,20.5,R,13.5,N,A*23"
-NMEA_TEST_MTW = "$WIMTW,25.8,C*02"
-NMEA_TEST_VHW = "$VWVHW,,,,,3.1,N,4.30,K*4D"
-
-NMEA_TEST = [NMEA_TEST_RMC, NMEA_TEST_DBT, NMEA_TEST_MWV, NMEA_TEST_MTW, NMEA_TEST_VHW]
-
+#defines
+DEBUG = True
 
 
 
@@ -37,27 +30,35 @@ class Boat():
         self.month = "-"
         self.year = "-"
 
-        self.wind_speed = "-"
+        self.wind_speed = "0 kt"
         self.wind_angle = "0°"
 
         self.water_speed = "-"
         self.water_temp = "-"
         self.water_depth = "-"
 
-        #connextion au bateau
-        try:
+        #connextion au bateau ou ouverture du fichier log
+        if not DEBUG:
             self.port = serial.Serial(serial_port, 57600)
-        except:
-            print("Erreur de connexion.")
+        else:
+            log_file = open("log.txt", 'r')
+            self.log_file_lines = log_file.readlines()
+            self.log_file_index = 0
 
 
 
     def parse_nmea(self):
-        try:
+        
+        #lecture du port serie ou de la ligne du fichier de log
+        if not DEBUG:
             sentence = self.port.readline().decode()
-        except:
-            sentence = NMEA_TEST[0]
-
+        else:
+            sentence = self.log_file_lines[self.log_file_index]
+            if self.log_file_index < len(self.log_file_lines)-1:
+                self.log_file_index += 1
+            else:
+                self.log_file_index = 0 #retour au debut du fichier pour test
+        
         nmea_rmc_re = re.compile(r"\$GPRMC,(?P<time>.*),(?P<champ1>.*),(?P<lat>.*),(?P<champ3>.*),(?P<long>.*),(?P<champ5>.*),(?P<ground_speed>.*),(?P<heading>.*),(?P<date>.*),,,(?P<champ11>.*)\*(?P<checksum>.*)")
         nmea_dbt_re = re.compile(r"\$SDDBT,(?P<depth_ft>.*),(?P<champ1>.*),(?P<depth_m>.*),(?P<champ3>.*),(?P<depth_f>.*),(?P<champ5>.*)\*(?P<checksum>.*)")
         nmea_mwv_re = re.compile(r"\$WIMWV,(?P<wind_angle>.*),(?P<champ1>.*),(?P<wind_speed_kt>.*),(?P<champ3>.*),(?P<champ4>.*)\*(?P<checksum>.*)")
@@ -105,7 +106,9 @@ class Boat():
 STLou = Boat("/dev/ttyUSB0")
 t_start = int(time.monotonic())
 
+
 def update_affichage():
+
     STLou.parse_nmea()
 
     duree_nav = int(time.monotonic()) - t_start
@@ -120,8 +123,9 @@ def update_affichage():
     label_eaux.config(text=f"Température: {STLou.water_temp}\nProfondeur: {STLou.water_depth}")
 
     angle_vent = math.radians(float(STLou.wind_angle[:-1]) - 90)
+    vitesse_vent = float(STLou.wind_speed[:-3])
     
-    rose_vent.coords(axe_vent, 75, 75, int(50*math.cos(angle_vent))+75, int(50*math.sin(angle_vent)+75))
+    rose_vent.coords(axe_vent, 75, 75, int(3*vitesse_vent*math.cos(angle_vent))+75, int(3*vitesse_vent*math.sin(angle_vent)+75))
 
 
 
