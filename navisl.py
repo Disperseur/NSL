@@ -6,12 +6,10 @@ import tkinter
 import math
 
 #settings
+DEBUG = True
+
 FONT_INFOS = "Mono 25"
 UPDATE_PERIOD_MS = 100
-
-
-#defines
-DEBUG = True
 
 
 
