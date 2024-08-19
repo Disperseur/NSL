@@ -4,6 +4,9 @@ import time
 import os
 import tkinter
 import math
+import matplotlib.pyplot as plt
+import numpy as np
+from PIL import Image
 
 #settings
 DEBUG = True
@@ -16,10 +19,14 @@ UPDATE_PERIOD_MS = 100
 class Boat():
 
     def __init__(self, serial_port):
-        self.ground_speed = "-"
+        self.ground_speed = "0 kt"
+        self.ground_speed_tbl = [0]*(36000//UPDATE_PERIOD_MS) #36000     tableau pour la moyenne glissante de vitesse sol
+        self.ground_speed_tbl_i = 0
+        self.ground_speed_avg_30min = 0
+        self.ground_speed_avg_1h = 0
 
-        self.long = "-"
-        self.lat = "-"
+        self.long = "001°08.9214' W"
+        self.lat = "44°39.6210' N"
         self.heading = "-"
 
         self.time = "-"
@@ -29,11 +36,15 @@ class Boat():
         self.year = "-"
 
         self.wind_speed = "0 kt"
+        self.wind_speed_avg_30min = "0 kt"
+        self.wind_speed_avg_1h = "0 kt"
         self.wind_angle = "0°"
 
         self.water_speed = "-"
         self.water_temp = "-"
         self.water_depth = "-"
+
+
 
         #connextion au bateau ou ouverture du fichier log
         if not DEBUG:
@@ -42,6 +53,11 @@ class Boat():
             log_file = open("log.txt", 'r')
             self.log_file_lines = log_file.readlines()
             self.log_file_index = 0
+
+
+
+        # carte de fond
+        self.map = np.asarray(Image.open('arcachon.png'))
 
 
 
@@ -95,19 +111,66 @@ class Boat():
             self.water_speed = f"{nmea_vhw_parsed.group('speed_kt')[:-1]} kt"
 
 
+    def calcul_stats(self):
+        #moyennes de vitesse sol
+        self.ground_speed_tbl[self.ground_speed_tbl_i] = float(self.ground_speed[:-3]) #ajout element
+        
+        #rotation indice ecriture dans tableau
+        if self.ground_speed_tbl_i < len(self.ground_speed_tbl) - 1:
+            self.ground_speed_tbl_i += 1
+        else:
+            self.ground_speed_tbl_i = 0
+
+        #calcul des moyennes
+        for i in range(len(self.ground_speed_tbl)):
+            self.ground_speed_avg_1h += self.ground_speed_tbl[i]
+            if i >= len(self.ground_speed_tbl) // 2:
+                self.ground_speed_avg_30min += self.ground_speed_tbl[i]
+        
+        self.ground_speed_avg_1h /= len(self.ground_speed_tbl)
+        self.ground_speed_avg_30min /= (len(self.ground_speed_tbl)/2)
 
 
 
 
 
-#main
-STLou = Boat("/dev/ttyUSB0")
-t_start = int(time.monotonic())
+def mapping(x, in_min, in_max, out_min, out_max):
+    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+
+
+def gps_to_map(lat, lon):
+    """
+    Fonction de remap des coordonées GPS sur la carte affichée par matplotlib
+
+    lat = y
+    lon = x
+    """
+
+
+    lat_deg = int(lat[:2]) + float(lat[3:-3]) / 60
+    lon_deg = -int(lon[:3]) - float(lon[4:-3]) / 60
+
+    print(lon_deg, lat_deg)
+
+    x = mapping(lon_deg, -1.31777, -1.01110, 0, 756)
+    y = mapping(lat_deg, 44.53533, 44.77666, 855, 0)
+
+    return x, y
+
+
 
 
 def update_affichage():
 
     STLou.parse_nmea()
+    STLou.calcul_stats()
+    # print(STLou.ground_speed_avg_30min)
+
+    x, y = gps_to_map(STLou.lat, STLou.long)
+
+    plt.scatter(x, y, color='red')
+    plt.show(block = False)
+    
 
     duree_nav = int(time.monotonic()) - t_start
     duree_nav_sec = duree_nav%60
@@ -115,10 +178,10 @@ def update_affichage():
     duree_nav_heu = (duree_nav//3600)
 
     label_dateheure.config(text=f"{STLou.date}\n{STLou.time[:-4]}\nDurée nav: {duree_nav_heu}:{duree_nav_min}:{duree_nav_sec}")
-    label_vitesse.config(text=f"Sol: {STLou.ground_speed}\nEau: {STLou.water_speed}")
+    label_vitesse.config(text=f"Sol: {STLou.ground_speed} (moy: {round(STLou.ground_speed_avg_30min, 1)})\nEau: {STLou.water_speed}")
     label_gps.config(text=f"Cap: {STLou.heading}\nLat: {STLou.lat}\nLon: {STLou.long}")
     label_vent.config(text=f"{STLou.wind_speed} {STLou.wind_angle}")
-    label_eaux.config(text=f"Température: {STLou.water_temp}\nProfondeur: {STLou.water_depth}")
+    label_eaux.config(text=f"Température: {STLou.water_temp}\nProfondeur:  {STLou.water_depth}")
 
     angle_vent = math.radians(float(STLou.wind_angle[:-1]) - 90)
     vitesse_vent = float(STLou.wind_speed[:-3])
@@ -130,9 +193,12 @@ def update_affichage():
     fenetre.after(UPDATE_PERIOD_MS, update_affichage)
 
 
+#main
+STLou = Boat("/dev/ttyUSB0")
+t_start = int(time.monotonic())
 
-
-
+plt.imshow(STLou.map)
+plt.show(block = False)
 
 #description de l'affichage de l'appli
 
