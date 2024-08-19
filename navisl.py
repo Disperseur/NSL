@@ -6,12 +6,12 @@ import tkinter
 import math
 import matplotlib.pyplot as plt
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageTk
 
 #settings
 DEBUG = True
 
-FONT_INFOS = "Mono 25"
+FONT_INFOS = "Mono 15"
 UPDATE_PERIOD_MS = 100
 
 
@@ -57,7 +57,7 @@ class Boat():
 
 
         # carte de fond
-        self.map = np.asarray(Image.open('arcachon.png'))
+        #self.map = np.asarray(Image.open('arcachon.png'))
 
 
 
@@ -168,8 +168,8 @@ def update_affichage():
 
     x, y = gps_to_map(STLou.lat, STLou.long)
 
-    plt.scatter(x, y, color='red')
-    plt.show(block = False)
+    # plt.scatter(x, y, color='red')
+    # plt.show(block = False)
     
 
     duree_nav = int(time.monotonic()) - t_start
@@ -197,15 +197,32 @@ def update_affichage():
 STLou = Boat("/dev/ttyUSB0")
 t_start = int(time.monotonic())
 
-plt.imshow(STLou.map)
-plt.show(block = False)
+# plt.imshow(STLou.map)
+# plt.show(block = False)
 
 #description de l'affichage de l'appli
 
 fenetre = tkinter.Tk()
 fenetre.title("NSL")
-fenetre.geometry('500x1100')
-fenetre.resizable(width=False, height=True)
+# fenetre.geometry('500x1100')
+# fenetre.resizable(width=False, height=True)
+
+
+
+
+
+frame_minimap = tkinter.LabelFrame(fenetre, text="Carte", padx=20, pady=20, font="Mono 20")
+frame_minimap.pack(fill="both", expand="yes", side=tkinter.RIGHT)
+
+minimap = tkinter.PhotoImage(file = 'arcachon.png')
+canvas_minimap = tkinter.Canvas(frame_minimap, width=minimap.width(), height=minimap.height())
+canvas_minimap.create_image(0, 0, image=minimap, anchor="nw")
+canvas_minimap.create_oval(200, 200, 250, 250)
+canvas_minimap.image = minimap
+canvas_minimap.pack()
+
+
+
 
 
 frame_dateheure = tkinter.LabelFrame(fenetre, text="Date / Heure", padx=20, pady=20, font="Mono 20")
@@ -230,6 +247,11 @@ frame_vent.pack(fill="both", expand="yes")
 frame_eaux = tkinter.LabelFrame(fenetre, text="Eaux", padx=20, pady=20, font="Mono 20")
 frame_eaux.pack(fill="both", expand="yes")
 
+
+
+
+
+
 label_dateheure = tkinter.Label(frame_dateheure, text="-\n-", font=FONT_INFOS)
 label_vitesse = tkinter.Label(frame_vitesse, text="Eau: -\nSol: -", font=FONT_INFOS, justify="left")
 label_gps = tkinter.Label(frame_gps, text="Cap: -\nLat: -\nLon: -", font=FONT_INFOS, justify="left")
@@ -241,6 +263,11 @@ label_vitesse.pack(anchor="w")
 label_gps.pack(anchor="w")
 label_vent.pack()
 label_eaux.pack(anchor="w")
+
+
+
+
+
 
 
 fenetre.after(UPDATE_PERIOD_MS, update_affichage)
