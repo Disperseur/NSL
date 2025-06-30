@@ -12,7 +12,7 @@ from PIL import Image
 DEBUG = True
 
 FONT_INFOS = "Mono 25"
-UPDATE_PERIOD_MS = 100
+UPDATE_PERIOD_MS = 1000
 
 
 
@@ -57,7 +57,7 @@ class Boat():
 
 
         # carte de fond
-        self.map = np.asarray(Image.open('arcachon.png'))
+        # self.map = np.asarray(Image.open('arcachon.png'))
 
 
 
@@ -166,10 +166,10 @@ def update_affichage():
     STLou.calcul_stats()
     # print(STLou.ground_speed_avg_30min)
 
-    x, y = gps_to_map(STLou.lat, STLou.long)
+    # x, y = gps_to_map(STLou.lat, STLou.long)
 
-    plt.scatter(x, y, color='red')
-    plt.show(block = False)
+    # plt.scatter(x, y, color='red')
+    # plt.show(block = False)
     
 
     duree_nav = int(time.monotonic()) - t_start
@@ -197,8 +197,8 @@ def update_affichage():
 STLou = Boat("/dev/ttyUSB0")
 t_start = int(time.monotonic())
 
-plt.imshow(STLou.map)
-plt.show(block = False)
+# plt.imshow(STLou.map)
+# plt.show(block = False)
 
 #description de l'affichage de l'appli
 

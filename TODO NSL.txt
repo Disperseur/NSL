@@ -1,5 +1,10 @@
 TODO NSL
 
+porter tout le logiciel en C++ ! 
+Problème d'utilisation CPU sur une longue exécution
+
+Problème de performance du à la minimap pour une raison inconnue. La charge CPU ne faisait que d'augmenter jusqu'à 100%
+
 
 - Alarmes (frame spécialisée): ->"\a"
 	face au vent
